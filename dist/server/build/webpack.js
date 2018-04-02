@@ -145,7 +145,15 @@ function externalsConfig(dir, isServer) {
       }
 
       // Webpack itself has to be compiled because it doesn't always use module relative paths
-      if (res.match(/node_modules[/\\].*\.js/) && !res.match(/node_modules[/\\]webpack/)) {
+      if (res.match(/node_modules[/\\]next[/\\]dist[/\\]pages/)) {
+        return callback();
+      }
+
+      if (res.match(/node_modules[/\\]webpack/)) {
+        return callback();
+      }
+
+      if (res.match(/node_modules[/\\].*\.js/)) {
         return callback(null, 'commonjs ' + request);
       }
 
@@ -199,7 +207,7 @@ exports.default = function () {
                       switch (_context.prev = _context.next) {
                         case 0:
                           _context.next = 2;
-                          return (0, _utils.getPages)(dir, { dev: dev, isServer: isServer });
+                          return (0, _utils.getPages)(dir, { dev: dev, isServer: isServer, pageExtensions: config.pageExtensions.join('|') });
 
                         case 2:
                           pages = _context.sent;
@@ -240,10 +248,15 @@ exports.default = function () {
                 modules: [nextNodeModulesDir, 'node_modules'].concat((0, _toConsumableArray3.default)(nodePathList)),
                 alias: {
                   next: nextDir,
-                  // This bypasses React's check for production mode. Since we know it is in production this way.
-                  // This allows us to exclude React from being uglified. Saving multiple seconds per build.
-                  react: dev ? 'react/cjs/react.development.js' : 'react/cjs/react.production.min.js',
-                  'react-dom': dev ? 'react-dom/cjs/react-dom.development.js' : 'react-dom/cjs/react-dom.production.min.js'
+                  // React already does something similar to this.
+                  // But if the user has react-devtools, it'll throw an error showing that
+                  // we haven't done dead code elimination (via uglifyjs).
+                  // We purposly do not uglify React code to save the build time.
+                  // (But it didn't increase the overall build size)
+                  // Here we are doing an exact match with '$'
+                  // So, you can still require nested modules like `react-dom/server`
+                  react$: dev ? 'react/cjs/react.development.js' : 'react/cjs/react.production.min.js',
+                  'react-dom$': dev ? 'react-dom/cjs/react-dom.development.js' : 'react-dom/cjs/react-dom.production.min.js'
                 }
               },
               resolveLoader: {
@@ -315,18 +328,18 @@ exports.default = function () {
               }), !isServer && new _combineAssetsPlugin2.default({
                 input: ['manifest.js', 'react.js', 'commons.js', 'main.js'],
                 output: 'app.js'
-              }), !dev && new _webpack2.default.optimize.ModuleConcatenationPlugin(), !isServer && new _pagesPlugin2.default(), !isServer && new _dynamicChunksPlugin2.default(), isServer && new _nextjsSsrImport2.default({ dir: dir, dist: config.distDir }), !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
+              }), !dev && new _webpack2.default.optimize.ModuleConcatenationPlugin(), !isServer && new _pagesPlugin2.default(), !isServer && new _dynamicChunksPlugin2.default(), isServer && new _nextjsSsrImport2.default(), !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
                 name: 'commons',
                 filename: 'commons.js',
                 minChunks: function minChunks(module, count) {
                   // We need to move react-dom explicitly into common chunks.
                   // Otherwise, if some other page or module uses it, it might
                   // included in that bundle too.
-                  if (dev && module.context && module.context.indexOf(_path.sep + 'react' + _path.sep) >= 0) {
+                  if (module.context && module.context.indexOf(_path.sep + 'react' + _path.sep) >= 0) {
                     return true;
                   }
 
-                  if (dev && module.context && module.context.indexOf(_path.sep + 'react-dom' + _path.sep) >= 0) {
+                  if (module.context && module.context.indexOf(_path.sep + 'react-dom' + _path.sep) >= 0) {
                     return true;
                   }
 
@@ -371,7 +384,7 @@ exports.default = function () {
 
 
             if (typeof config.webpack === 'function') {
-              webpackConfig = config.webpack(webpackConfig, { dir: dir, dev: dev, isServer: isServer, buildId: buildId, config: config, defaultLoaders: defaultLoaders });
+              webpackConfig = config.webpack(webpackConfig, { dir: dir, dev: dev, isServer: isServer, buildId: buildId, config: config, defaultLoaders: defaultLoaders, totalPages: totalPages });
             }
 
             return _context2.abrupt('return', webpackConfig);

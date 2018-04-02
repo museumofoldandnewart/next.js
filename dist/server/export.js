@@ -115,35 +115,45 @@ exports.default = function () {
             return (0, _recursiveCopy2.default)((0, _path.join)(dir, 'static'), (0, _path.join)(outDir, 'static'), { expand: true });
 
           case 21:
+            if (!(0, _fs.existsSync)((0, _path.join)(nextDir, 'static'))) {
+              _context.next = 25;
+              break;
+            }
+
+            log('  copying "static build" directory');
+            _context.next = 25;
+            return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'static'), (0, _path.join)(outDir, '_next', 'static'));
+
+          case 25:
             if (!(0, _fs.existsSync)((0, _path.join)(nextDir, 'chunks'))) {
-              _context.next = 27;
+              _context.next = 31;
               break;
             }
 
             log('  copying dynamic import chunks');
 
-            _context.next = 25;
+            _context.next = 29;
             return (0, _mkdirpThen2.default)((0, _path.join)(outDir, '_next', 'webpack'));
 
-          case 25:
-            _context.next = 27;
+          case 29:
+            _context.next = 31;
             return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'chunks'), (0, _path.join)(outDir, '_next', 'webpack', 'chunks'));
 
-          case 27:
-            _context.next = 29;
+          case 31:
+            _context.next = 33;
             return copyPages(nextDir, outDir, buildId);
 
-          case 29:
+          case 33:
 
             // Get the exportPathMap from the `next.config.js`
             if (typeof config.exportPathMap !== 'function') {
               (0, _utils2.printAndExit)('> Could not find "exportPathMap" function inside "next.config.js"\n' + '> "next export" uses that function to build html pages.');
             }
 
-            _context.next = 32;
+            _context.next = 36;
             return config.exportPathMap();
 
-          case 32:
+          case 36:
             exportPathMap = _context.sent;
             exportPaths = (0, _keys2.default)(exportPathMap);
 
@@ -151,6 +161,7 @@ exports.default = function () {
 
             renderOpts = {
               dir: dir,
+              dist: config.distDir,
               buildStats: buildStats,
               buildId: buildId,
               nextExport: true,
@@ -172,12 +183,12 @@ exports.default = function () {
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
             _iteratorError = undefined;
-            _context.prev = 40;
+            _context.prev = 44;
             _iterator = (0, _getIterator3.default)(exportPaths);
 
-          case 42:
+          case 46:
             if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-              _context.next = 63;
+              _context.next = 67;
               break;
             }
 
@@ -186,13 +197,13 @@ exports.default = function () {
             log('  exporting path: ' + path);
 
             if (path.startsWith('/')) {
-              _context.next = 47;
+              _context.next = 51;
               break;
             }
 
             throw new Error('path "' + path + '" doesn\'t start with a backslash');
 
-          case 47:
+          case 51:
             _exportPathMap$path = exportPathMap[path], page = _exportPathMap$path.page, _exportPathMap$path$q = _exportPathMap$path.query, query = _exportPathMap$path$q === undefined ? {} : _exportPathMap$path$q;
             req = { url: path };
             res = {};
@@ -207,68 +218,68 @@ exports.default = function () {
             }
             baseDir = (0, _path.join)(outDir, (0, _path.dirname)(htmlFilename));
             htmlFilepath = (0, _path.join)(outDir, htmlFilename);
-            _context.next = 56;
+            _context.next = 60;
             return (0, _mkdirpThen2.default)(baseDir);
 
-          case 56:
-            _context.next = 58;
+          case 60:
+            _context.next = 62;
             return (0, _render.renderToHTML)(req, res, page, query, renderOpts);
 
-          case 58:
+          case 62:
             html = _context.sent;
 
             (0, _fs.writeFileSync)(htmlFilepath, html, 'utf8');
 
-          case 60:
+          case 64:
             _iteratorNormalCompletion = true;
-            _context.next = 42;
+            _context.next = 46;
             break;
 
-          case 63:
-            _context.next = 69;
+          case 67:
+            _context.next = 73;
             break;
-
-          case 65:
-            _context.prev = 65;
-            _context.t0 = _context['catch'](40);
-            _didIteratorError = true;
-            _iteratorError = _context.t0;
 
           case 69:
             _context.prev = 69;
-            _context.prev = 70;
+            _context.t0 = _context['catch'](44);
+            _didIteratorError = true;
+            _iteratorError = _context.t0;
+
+          case 73:
+            _context.prev = 73;
+            _context.prev = 74;
 
             if (!_iteratorNormalCompletion && _iterator.return) {
               _iterator.return();
             }
 
-          case 72:
-            _context.prev = 72;
+          case 76:
+            _context.prev = 76;
 
             if (!_didIteratorError) {
-              _context.next = 75;
+              _context.next = 79;
               break;
             }
 
             throw _iteratorError;
 
-          case 75:
-            return _context.finish(72);
+          case 79:
+            return _context.finish(76);
 
-          case 76:
-            return _context.finish(69);
+          case 80:
+            return _context.finish(73);
 
-          case 77:
+          case 81:
 
             // Add an empty line to the console for the better readability.
             log('');
 
-          case 78:
+          case 82:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, this, [[40, 65, 69, 77], [70,, 72, 76]]);
+    }, _callee, this, [[44, 69, 73, 81], [74,, 76, 80]]);
   }));
 
   return function (_x, _x2, _x3) {

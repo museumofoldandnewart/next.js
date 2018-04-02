@@ -238,6 +238,7 @@ var _window = window,
     _window$__NEXT_DATA__ = _window.__NEXT_DATA__,
     props = _window$__NEXT_DATA__.props,
     err = _window$__NEXT_DATA__.err,
+    page = _window$__NEXT_DATA__.page,
     pathname = _window$__NEXT_DATA__.pathname,
     query = _window$__NEXT_DATA__.query,
     buildId = _window$__NEXT_DATA__.buildId,
@@ -367,7 +368,7 @@ exports.default = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.de
           exports.ErrorComponent = ErrorComponent = _context.sent;
           _context.prev = 31;
           _context.next = 34;
-          return pageLoader.loadPage(pathname);
+          return pageLoader.loadPage(page);
 
         case 34:
           Component = _context.sent;

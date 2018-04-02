@@ -121,10 +121,11 @@ var Server = function () {
     this.dev = dev;
     this.quiet = quiet;
     this.router = new _router2.default();
-    this.hotReloader = dev ? this.getHotReloader(this.dir, { quiet: quiet, conf: conf }) : null;
     this.http = null;
     this.config = (0, _config2.default)(this.dir, conf);
     this.dist = this.config.distDir;
+
+    this.hotReloader = dev ? this.getHotReloader(this.dir, { quiet: quiet, config: this.config }) : null;
 
     if (dev) {
       (0, _checkUpdates2.default)(_package2.default, 'next');
@@ -140,6 +141,7 @@ var Server = function () {
       dev: dev,
       staticMarkup: staticMarkup,
       dir: this.dir,
+      dist: this.dist,
       hotReloader: this.hotReloader,
       buildStats: this.buildStats,
       buildId: this.buildId,
@@ -501,7 +503,7 @@ var Server = function () {
 
         '/_next/:buildId/page/:path*.js.map': function () {
           var _ref11 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee10(req, res, params) {
-            var paths, page, dist, path;
+            var paths, page, path;
             return _regenerator2.default.wrap(function _callee10$(_context10) {
               while (1) {
                 switch (_context10.prev = _context10.next) {
@@ -529,12 +531,11 @@ var Server = function () {
                     return _this3.render404(req, res);
 
                   case 12:
-                    dist = (0, _config2.default)(_this3.dir).distDir;
-                    path = (0, _path.join)(_this3.dir, dist, 'bundles', 'pages', page + '.js.map');
-                    _context10.next = 16;
+                    path = (0, _path.join)(_this3.dir, _this3.dist, 'bundles', 'pages', page + '.js.map');
+                    _context10.next = 15;
                     return (0, _render.serveStatic)(req, res, path);
 
-                  case 16:
+                  case 15:
                   case 'end':
                     return _context10.stop();
                 }
@@ -706,7 +707,7 @@ var Server = function () {
               while (1) {
                 switch (_context13.prev = _context13.next) {
                   case 0:
-                    p = _path.join.apply(undefined, [_this3.dist, 'static'].concat((0, _toConsumableArray3.default)(params.path || [])));
+                    p = _path.join.apply(undefined, [_this3.dir, _this3.dist, 'static'].concat((0, _toConsumableArray3.default)(params.path || [])));
                     _context13.next = 3;
                     return _this3.serveStatic(req, res, p);
 
@@ -985,7 +986,9 @@ var Server = function () {
 
               case 11:
 
-                res.setHeader('X-Powered-By', 'Next.js ' + _package2.default.version);
+                if (this.config.poweredByHeader) {
+                  res.setHeader('X-Powered-By', 'Next.js ' + _package2.default.version);
+                }
                 return _context19.abrupt('return', (0, _render.sendHTML)(req, res, html, req.method, this.renderOpts));
 
               case 13:
