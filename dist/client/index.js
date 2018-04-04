@@ -221,6 +221,10 @@ var _asset = require('../lib/asset');
 
 var asset = _interopRequireWildcard(_asset);
 
+var _runtimeConfig = require('../lib/runtime-config');
+
+var envConfig = _interopRequireWildcard(_runtimeConfig);
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -244,6 +248,7 @@ var _window = window,
     buildId = _window$__NEXT_DATA__.buildId,
     chunks = _window$__NEXT_DATA__.chunks,
     assetPrefix = _window$__NEXT_DATA__.assetPrefix,
+    runtimeConfig = _window$__NEXT_DATA__.runtimeConfig,
     location = _window.location;
 
 // With dynamic assetPrefix it's no longer possible to set assetPrefix at the build time
@@ -252,6 +257,11 @@ var _window = window,
 __webpack_public_path__ = assetPrefix + '/_next/webpack/'; //eslint-disable-line
 // Initialize next/asset with the assetPrefix
 asset.setAssetPrefix(assetPrefix);
+// Initialize next/config with the environment configuration
+envConfig.setConfig({
+  serverRuntimeConfig: {},
+  publicRuntimeConfig: runtimeConfig
+});
 
 var asPath = (0, _utils.getURL)();
 

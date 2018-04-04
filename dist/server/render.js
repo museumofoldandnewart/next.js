@@ -9,13 +9,17 @@ var _getIterator2 = require('babel-runtime/core-js/get-iterator');
 
 var _getIterator3 = _interopRequireDefault(_getIterator2);
 
+var _stringify = require('babel-runtime/core-js/json/stringify');
+
+var _stringify2 = _interopRequireDefault(_stringify);
+
 var _promise = require('babel-runtime/core-js/promise');
 
 var _promise2 = _interopRequireDefault(_promise);
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
+var _slicedToArray2 = require('babel-runtime/helpers/slicedToArray');
 
-var _stringify2 = _interopRequireDefault(_stringify);
+var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
 
 var _extends2 = require('babel-runtime/helpers/extends');
 
@@ -91,9 +95,9 @@ var doRender = function () {
         err = _ref4.err,
         page = _ref4.page,
         buildId = _ref4.buildId,
-        buildStats = _ref4.buildStats,
         hotReloader = _ref4.hotReloader,
         assetPrefix = _ref4.assetPrefix,
+        runtimeConfig = _ref4.runtimeConfig,
         availableChunks = _ref4.availableChunks,
         dist = _ref4.dist,
         _ref4$dir = _ref4.dir,
@@ -105,7 +109,8 @@ var doRender = function () {
         _ref4$nextExport = _ref4.nextExport,
         nextExport = _ref4$nextExport === undefined ? false : _ref4$nextExport;
 
-    var documentPath, Component, Document, asPath, ctx, props, renderPage, docProps, doc;
+    var documentPath, _ref5, _ref6, Component, Document, asPath, ctx, props, renderPage, docProps, doc;
+
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -122,27 +127,33 @@ var doRender = function () {
 
           case 4:
             documentPath = (0, _path.join)(dir, dist, 'dist', 'bundles', 'pages', '_document');
-            Component = (0, _require2.default)(page, { dir: dir, dist: dist });
-            Document = require(documentPath);
+            _context3.next = 7;
+            return _promise2.default.all([(0, _require2.default)(page, { dir: dir, dist: dist }), require(documentPath)]);
+
+          case 7:
+            _ref5 = _context3.sent;
+            _ref6 = (0, _slicedToArray3.default)(_ref5, 2);
+            Component = _ref6[0];
+            Document = _ref6[1];
 
             Component = Component.default || Component;
             Document = Document.default || Document;
             asPath = req.url;
             ctx = { err: err, req: req, res: res, pathname: pathname, query: query, asPath: asPath };
-            _context3.next = 13;
+            _context3.next = 17;
             return (0, _utils.loadGetInitialProps)(Component, ctx);
 
-          case 13:
+          case 17:
             props = _context3.sent;
 
             if (!(0, _utils.isResSent)(res)) {
-              _context3.next = 16;
+              _context3.next = 20;
               break;
             }
 
             return _context3.abrupt('return');
 
-          case 16:
+          case 20:
             renderPage = function renderPage() {
               var enhancer = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function (Page) {
                 return Page;
@@ -176,28 +187,28 @@ var doRender = function () {
               return { html: html, head: head, errorHtml: errorHtml, chunks: chunks };
             };
 
-            _context3.next = 19;
+            _context3.next = 23;
             return (0, _utils.loadGetInitialProps)(Document, (0, _extends3.default)({}, ctx, { renderPage: renderPage }));
 
-          case 19:
+          case 23:
             docProps = _context3.sent;
 
             if (!(0, _utils.isResSent)(res)) {
-              _context3.next = 22;
+              _context3.next = 26;
               break;
             }
 
             return _context3.abrupt('return');
 
-          case 22:
+          case 26:
             if (!(!Document.prototype || !Document.prototype.isReactComponent)) {
-              _context3.next = 24;
+              _context3.next = 28;
               break;
             }
 
             throw new Error('_document.js is not exporting a React element');
 
-          case 24:
+          case 28:
             doc = (0, _react.createElement)(Document, (0, _extends3.default)({
               __NEXT_DATA__: {
                 props: props,
@@ -205,8 +216,8 @@ var doRender = function () {
                 pathname: pathname, // the requested path
                 query: query,
                 buildId: buildId,
-                buildStats: buildStats,
                 assetPrefix: assetPrefix,
+                runtimeConfig: runtimeConfig,
                 nextExport: nextExport,
                 err: err ? serializeError(dev, err) : null
               },
@@ -216,7 +227,7 @@ var doRender = function () {
             }, docProps));
             return _context3.abrupt('return', '<!DOCTYPE html>' + (0, _server.renderToStaticMarkup)(doc));
 
-          case 26:
+          case 30:
           case 'end':
             return _context3.stop();
         }
@@ -230,32 +241,28 @@ var doRender = function () {
 }();
 
 var renderScriptError = exports.renderScriptError = function () {
-  var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(req, res, page, error, customFields, _ref5) {
-    var dev = _ref5.dev;
-    var errorJson;
+  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(req, res, page, error) {
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
             // Asks CDNs and others to not to cache the errored page
             res.setHeader('Cache-Control', 'no-store, must-revalidate');
-            // prevent XSS attacks by filtering the page before printing it.
-            page = _xssFilters2.default.uriInSingleQuotedAttr(page);
-            res.setHeader('Content-Type', 'text/javascript');
 
             if (!(error.code === 'ENOENT')) {
-              _context4.next = 6;
+              _context4.next = 5;
               break;
             }
 
-            res.end('\n      window.__NEXT_REGISTER_PAGE(\'' + page + '\', function() {\n        var error = new Error(\'Page does not exist: ' + page + '\')\n        error.statusCode = 404\n\n        return { error: error }\n      })\n    ');
+            res.statusCode = 404;
+            res.end('404 - Not Found');
             return _context4.abrupt('return');
 
-          case 6:
-            errorJson = (0, _extends3.default)({}, serializeError(dev, error), customFields);
+          case 5:
 
-
-            res.end('\n    window.__NEXT_REGISTER_PAGE(\'' + page + '\', function() {\n      var error = ' + (0, _stringify2.default)(errorJson) + '\n      return { error: error }\n    })\n  ');
+            logger.error(error.stack);
+            res.statusCode = 500;
+            res.end('500 - Internal Error');
 
           case 8:
           case 'end':
@@ -265,15 +272,15 @@ var renderScriptError = exports.renderScriptError = function () {
     }, _callee4, this);
   }));
 
-  return function renderScriptError(_x19, _x20, _x21, _x22, _x23, _x24) {
-    return _ref6.apply(this, arguments);
+  return function renderScriptError(_x19, _x20, _x21, _x22) {
+    return _ref7.apply(this, arguments);
   };
 }();
 
 var ensurePage = function () {
-  var _ref9 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(page, _ref8) {
-    var dir = _ref8.dir,
-        hotReloader = _ref8.hotReloader;
+  var _ref10 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(page, _ref9) {
+    var dir = _ref9.dir,
+        hotReloader = _ref9.hotReloader;
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -297,8 +304,8 @@ var ensurePage = function () {
     }, _callee5, this);
   }));
 
-  return function ensurePage(_x25, _x26) {
-    return _ref9.apply(this, arguments);
+  return function ensurePage(_x23, _x24) {
+    return _ref10.apply(this, arguments);
   };
 }();
 
@@ -350,11 +357,9 @@ var _errorDebug2 = _interopRequireDefault(_errorDebug);
 
 var _dynamic = require('../lib/dynamic');
 
-var _xssFilters = require('xss-filters');
-
-var _xssFilters2 = _interopRequireDefault(_xssFilters);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var logger = console;
 
 function renderToHTML(req, res, pathname, query, opts) {
   return doRender(req, res, pathname, query, opts);
@@ -366,11 +371,12 @@ function renderErrorToHTML(err, req, res, pathname, query) {
   return doRender(req, res, pathname, query, (0, _extends3.default)({}, opts, { err: err, page: '/_error' }));
 }
 
-function sendHTML(req, res, html, method, _ref7) {
-  var dev = _ref7.dev;
+function sendHTML(req, res, html, method, _ref8) {
+  var dev = _ref8.dev,
+      generateEtags = _ref8.generateEtags;
 
   if ((0, _utils.isResSent)(res)) return;
-  var etag = (0, _etag2.default)(html);
+  var etag = generateEtags && (0, _etag2.default)(html);
 
   if ((0, _fresh2.default)(req.headers, { etag: etag })) {
     res.statusCode = 304;
@@ -384,7 +390,10 @@ function sendHTML(req, res, html, method, _ref7) {
     res.setHeader('Cache-Control', 'no-store, must-revalidate');
   }
 
-  res.setHeader('ETag', etag);
+  if (etag) {
+    res.setHeader('ETag', etag);
+  }
+
   if (!res.getHeader('Content-Type')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
   }
@@ -437,11 +446,11 @@ function serveStatic(req, res, path) {
   });
 }
 
-function loadChunks(_ref10) {
-  var dev = _ref10.dev,
-      dir = _ref10.dir,
-      dist = _ref10.dist,
-      availableChunks = _ref10.availableChunks;
+function loadChunks(_ref11) {
+  var dev = _ref11.dev,
+      dir = _ref11.dir,
+      dist = _ref11.dist,
+      availableChunks = _ref11.availableChunks;
 
   var flushedChunks = (0, _dynamic.flushChunks)();
   var response = {

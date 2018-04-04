@@ -62,10 +62,6 @@ var _friendlyErrorsWebpackPlugin2 = _interopRequireDefault(_friendlyErrorsWebpac
 
 var _utils = require('./webpack/utils');
 
-var _combineAssetsPlugin = require('./plugins/combine-assets-plugin');
-
-var _combineAssetsPlugin2 = _interopRequireDefault(_combineAssetsPlugin);
-
 var _pagesPlugin = require('./plugins/pages-plugin');
 
 var _pagesPlugin2 = _interopRequireDefault(_pagesPlugin);
@@ -240,7 +236,13 @@ exports.default = function () {
                 // This saves chunks with the name given via require.ensure()
                 chunkFilename: '[name]-[chunkhash].js',
                 strictModuleExceptionHandling: true,
-                devtoolModuleFilenameTemplate: '[absolute-resource-path]'
+                devtoolModuleFilenameTemplate: function devtoolModuleFilenameTemplate(info) {
+                  if (dev) {
+                    return '[absolute-resource-path]';
+                  }
+
+                  return '' + info.absoluteResourcePath.replace(dir, '.').replace(nextDir, './node_modules/next');
+                }
               },
               performance: { hints: false },
               resolve: {
@@ -318,28 +320,26 @@ exports.default = function () {
                     toplevel: false,
                     typeofs: false,
                     unused: false,
-                    conditionals: false,
+                    conditionals: true,
                     dead_code: true,
-                    evaluate: false
+                    evaluate: true
                   }
                 }
               }), new _webpack2.default.DefinePlugin({
                 'process.env.NODE_ENV': (0, _stringify2.default)(dev ? 'development' : 'production')
-              }), !isServer && new _combineAssetsPlugin2.default({
-                input: ['manifest.js', 'react.js', 'commons.js', 'main.js'],
-                output: 'app.js'
-              }), !dev && new _webpack2.default.optimize.ModuleConcatenationPlugin(), !isServer && new _pagesPlugin2.default(), !isServer && new _dynamicChunksPlugin2.default(), isServer && new _nextjsSsrImport2.default(), !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
-                name: 'commons',
-                filename: 'commons.js',
+              }), !dev && new _webpack2.default.optimize.ModuleConcatenationPlugin(), !isServer && new _pagesPlugin2.default(), !isServer && new _dynamicChunksPlugin2.default(), isServer && new _nextjsSsrImport2.default(),
+              // In dev mode, we don't move anything to the commons bundle.
+              // In production we move common modules into the existing main.js bundle
+              !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
+                name: 'main.js',
+                filename: 'main.js',
                 minChunks: function minChunks(module, count) {
-                  // We need to move react-dom explicitly into common chunks.
-                  // Otherwise, if some other page or module uses it, it might
-                  // included in that bundle too.
-                  if (module.context && module.context.indexOf(_path.sep + 'react' + _path.sep) >= 0) {
+                  // React and React DOM are used everywhere in Next.js. So they should always be common. Even in development mode, to speed up compilation.
+                  if (module.resource && module.resource.includes(_path.sep + 'react-dom' + _path.sep) && count >= 0) {
                     return true;
                   }
 
-                  if (module.context && module.context.indexOf(_path.sep + 'react-dom' + _path.sep) >= 0) {
+                  if (module.resource && module.resource.includes(_path.sep + 'react' + _path.sep) && count >= 0) {
                     return true;
                   }
 
@@ -350,6 +350,7 @@ exports.default = function () {
                     return false;
                   }
 
+                  // commons
                   // If there are one or two pages, only move modules to common if they are
                   // used in all of the pages. Otherwise, move modules used in at-least
                   // 1/2 of the total pages into commons.
@@ -357,26 +358,11 @@ exports.default = function () {
                     return count >= totalPages;
                   }
                   return count >= totalPages * 0.5;
+                  // commons end
                 }
-              }), !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
-                name: 'react',
-                filename: 'react.js',
-                minChunks: function minChunks(module, count) {
-                  if (dev) {
-                    return false;
-                  }
-
-                  if (module.resource && module.resource.includes(_path.sep + 'react-dom' + _path.sep) && count >= 0) {
-                    return true;
-                  }
-
-                  if (module.resource && module.resource.includes(_path.sep + 'react' + _path.sep) && count >= 0) {
-                    return true;
-                  }
-
-                  return false;
-                }
-              }), !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
+              }),
+              // We use a manifest file in development to speed up HMR
+              dev && !isServer && new _webpack2.default.optimize.CommonsChunkPlugin({
                 name: 'manifest',
                 filename: 'manifest.js'
               })].filter(Boolean)

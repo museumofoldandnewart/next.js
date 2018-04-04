@@ -48,6 +48,8 @@ var _config = require('./config');
 
 var _config2 = _interopRequireDefault(_config);
 
+var _constants = require('../lib/constants');
+
 var _render = require('./render');
 
 var _utils = require('./utils');
@@ -56,11 +58,17 @@ var _utils2 = require('../lib/utils');
 
 var _asset = require('../lib/asset');
 
+var _runtimeConfig = require('../lib/runtime-config');
+
+var envConfig = _interopRequireWildcard(_runtimeConfig);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(dir, options, configuration) {
-    var config, nextDir, buildId, buildStats, outDir, exportPathMap, exportPaths, renderOpts, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, path, _exportPathMap$path, page, _exportPathMap$path$q, query, req, res, htmlFilename, baseDir, htmlFilepath, html, log;
+    var nextConfig, nextDir, buildId, outDir, exportPathMap, exportPaths, renderOpts, serverRuntimeConfig, publicRuntimeConfig, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, path, _exportPathMap$path, page, _exportPathMap$path$q, query, req, res, htmlFilename, baseDir, htmlFilepath, html, log;
 
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
@@ -72,8 +80,8 @@ exports.default = function () {
             };
 
             dir = (0, _path.resolve)(dir);
-            config = configuration || (0, _config2.default)(dir);
-            nextDir = (0, _path.join)(dir, config.distDir);
+            nextConfig = configuration || (0, _config2.default)(_constants.PHASE_EXPORT, dir);
+            nextDir = (0, _path.join)(dir, nextConfig.distDir);
 
 
             log('  using build directory: ' + nextDir);
@@ -84,76 +92,71 @@ exports.default = function () {
             }
 
             buildId = (0, _fs.readFileSync)((0, _path.join)(nextDir, 'BUILD_ID'), 'utf8');
-            buildStats = require((0, _path.join)(nextDir, 'build-stats.json'));
 
             // Initialize the output directory
 
             outDir = options.outdir;
-            _context.next = 11;
+            _context.next = 10;
             return (0, _del2.default)((0, _path.join)(outDir, '*'));
 
-          case 11:
-            _context.next = 13;
-            return (0, _mkdirpThen2.default)((0, _path.join)(outDir, '_next', buildStats['app.js'].hash));
-
-          case 13:
-            _context.next = 15;
+          case 10:
+            _context.next = 12;
             return (0, _mkdirpThen2.default)((0, _path.join)(outDir, '_next', buildId));
 
-          case 15:
-            _context.next = 17;
-            return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'app.js'), (0, _path.join)(outDir, '_next', buildStats['app.js'].hash, 'app.js'));
-
-          case 17:
+          case 12:
             if (!(0, _fs.existsSync)((0, _path.join)(dir, 'static'))) {
-              _context.next = 21;
+              _context.next = 16;
               break;
             }
 
             log('  copying "static" directory');
-            _context.next = 21;
+            _context.next = 16;
             return (0, _recursiveCopy2.default)((0, _path.join)(dir, 'static'), (0, _path.join)(outDir, 'static'), { expand: true });
 
-          case 21:
+          case 16:
+            _context.next = 18;
+            return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'main.js'), (0, _path.join)(outDir, '_next', buildId, 'main.js'));
+
+          case 18:
             if (!(0, _fs.existsSync)((0, _path.join)(nextDir, 'static'))) {
-              _context.next = 25;
+              _context.next = 22;
               break;
             }
 
             log('  copying "static build" directory');
-            _context.next = 25;
+            _context.next = 22;
             return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'static'), (0, _path.join)(outDir, '_next', 'static'));
 
-          case 25:
+          case 22:
             if (!(0, _fs.existsSync)((0, _path.join)(nextDir, 'chunks'))) {
-              _context.next = 31;
+              _context.next = 28;
               break;
             }
 
             log('  copying dynamic import chunks');
 
-            _context.next = 29;
+            _context.next = 26;
             return (0, _mkdirpThen2.default)((0, _path.join)(outDir, '_next', 'webpack'));
 
-          case 29:
-            _context.next = 31;
+          case 26:
+            _context.next = 28;
             return (0, _recursiveCopy2.default)((0, _path.join)(nextDir, 'chunks'), (0, _path.join)(outDir, '_next', 'webpack', 'chunks'));
 
-          case 31:
-            _context.next = 33;
+          case 28:
+            _context.next = 30;
             return copyPages(nextDir, outDir, buildId);
 
-          case 33:
+          case 30:
 
             // Get the exportPathMap from the `next.config.js`
-            if (typeof config.exportPathMap !== 'function') {
+            if (typeof nextConfig.exportPathMap !== 'function') {
               (0, _utils2.printAndExit)('> Could not find "exportPathMap" function inside "next.config.js"\n' + '> "next export" uses that function to build html pages.');
             }
 
-            _context.next = 36;
-            return config.exportPathMap();
+            _context.next = 33;
+            return nextConfig.exportPathMap();
 
-          case 36:
+          case 33:
             exportPathMap = _context.sent;
             exportPaths = (0, _keys2.default)(exportPathMap);
 
@@ -161,18 +164,28 @@ exports.default = function () {
 
             renderOpts = {
               dir: dir,
-              dist: config.distDir,
-              buildStats: buildStats,
+              dist: nextConfig.distDir,
               buildId: buildId,
               nextExport: true,
-              assetPrefix: config.assetPrefix.replace(/\/$/, ''),
+              assetPrefix: nextConfig.assetPrefix.replace(/\/$/, ''),
               dev: false,
               staticMarkup: false,
               hotReloader: null,
-              availableChunks: (0, _utils.getAvailableChunks)(dir, config.distDir)
-
-              // set the assetPrefix to use for 'next/asset'
+              availableChunks: (0, _utils.getAvailableChunks)(dir, nextConfig.distDir)
             };
+            serverRuntimeConfig = nextConfig.serverRuntimeConfig, publicRuntimeConfig = nextConfig.publicRuntimeConfig;
+
+
+            if (publicRuntimeConfig) {
+              renderOpts.runtimeConfig = publicRuntimeConfig;
+            }
+
+            envConfig.setConfig({
+              serverRuntimeConfig: serverRuntimeConfig,
+              publicRuntimeConfig: publicRuntimeConfig
+            });
+
+            // set the assetPrefix to use for 'next/asset'
             (0, _asset.setAssetPrefix)(renderOpts.assetPrefix);
 
             // We need this for server rendering the Link component.
