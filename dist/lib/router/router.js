@@ -245,7 +245,7 @@ var Router = function () {
       var as = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : url;
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-      return this.change('pushState', url, as, options);
+      return this.change('pushState', url + '?uri=' + as.substr(1), as, options);
     }
   }, {
     key: 'replace',
@@ -253,7 +253,7 @@ var Router = function () {
       var as = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : url;
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-      return this.change('replaceState', url, as, options);
+      return this.change('replaceState', url + '?uri=' + as.substr(1), as, options);
     }
   }, {
     key: 'change',
