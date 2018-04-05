@@ -245,7 +245,6 @@ var Router = function () {
       var as = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : url;
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-      console.log('push', url, as);
       return this.change('pushState', url, as, options);
     }
   }, {
