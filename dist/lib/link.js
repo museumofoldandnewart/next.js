@@ -120,7 +120,7 @@ var Link = function (_Component) {
       var changeMethod = replace ? 'replace' : 'push';
 
       // straight up redirect
-      _router2.default[changeMethod](href, as, { shallow: shallow }).then(function (success) {
+      _router2.default[changeMethod](href + '?uri=' + as, as, { shallow: shallow }).then(function (success) {
         if (!success) return;
         if (scroll) {
           window.scrollTo(0, 0);

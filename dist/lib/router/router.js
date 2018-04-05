@@ -252,7 +252,8 @@ var Router = function () {
       var as = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : url;
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-      return this.change('pushState', url + '?uri=' + as, as, options);
+      if (url.indexOf('uri=') < 0) url = url + '?uri=' + as;
+      return this.change('pushState', url, as, options);
     }
   }, {
     key: 'replace',
@@ -260,7 +261,8 @@ var Router = function () {
       var as = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : url;
       var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-      return this.change('replaceState', url + '?uri=' + as, as, options);
+      if (url.indexOf('uri=') < 0) url = url + '?uri=' + as;
+      return this.change('replaceState', url, as, options);
     }
   }, {
     key: 'change',
